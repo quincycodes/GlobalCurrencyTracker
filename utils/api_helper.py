@@ -27,9 +27,6 @@ def fetch_historical_rates(base_currency="USD", days=30):
         while current_date <= end_date:
             date_str = current_date.strftime("%Y-%m-%d")
 
-            # Debug logging
-            st.debug(f"Fetching rates for date: {date_str}")
-
             response = requests.get(f"{BASE_URL}/{date_str}")
             if response.status_code == 200:
                 data = response.json()
@@ -45,7 +42,7 @@ def fetch_historical_rates(base_currency="USD", days=30):
                     else:
                         historical_data['rates'][date_str] = data['rates']
             else:
-                st.debug(f"Failed to fetch rates for {date_str}: {response.status_code}")
+                st.warning(f"Failed to fetch rates for {date_str}")
 
             current_date += timedelta(days=1)
 
