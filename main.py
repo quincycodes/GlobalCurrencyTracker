@@ -1,6 +1,5 @@
 import streamlit as st
 from components.currency_converter import currency_converter
-from components.historical_chart import display_historical_chart
 from components.live_rates import display_live_rates
 from utils.data_processor import get_currency_list
 
@@ -114,27 +113,13 @@ base_currency = st.selectbox(
 )
 
 # Main content tabs
-tab1, tab2, tab3 = st.tabs(["Live Rates", "Convert", "History"])
+tab1, tab2 = st.tabs(["Live Rates", "Convert"])
 
 with tab1:
     display_live_rates(base_currency)
 
 with tab2:
     currency_converter()
-
-with tab3:
-    available_targets = [c for c in currencies.keys() if c != base_currency]
-    default_target_index = available_targets.index('USD') if 'USD' in available_targets else 0 if available_targets else 0
-    if base_currency == 'USD' and 'EUR' in available_targets:
-        default_target_index = available_targets.index('EUR')
-
-    target_currency = st.selectbox(
-        "Target Currency",
-        options=available_targets,
-        format_func=lambda x: f"{x} - {currencies[x]}",
-        index = default_target_index
-    )
-    display_historical_chart(base_currency, target_currency)
 
 # Footer
 st.markdown("---")
