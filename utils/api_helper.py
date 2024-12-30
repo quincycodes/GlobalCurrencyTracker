@@ -2,10 +2,11 @@ import requests
 import streamlit as st
 from datetime import datetime, timedelta
 import os
+import time
 
 BASE_URL = "https://open.er-api.com/v6"
-FIXER_BASE_URL = "http://data.fixer.io/api"
-FIXER_API_KEY = os.environ.get('FIXER_API_KEY')
+ALPHA_VANTAGE_URL = "https://www.alphavantage.co/query"
+ALPHA_VANTAGE_API_KEY = os.environ.get('ALPHA_VANTAGE_API_KEY')
 
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def fetch_latest_rates(base_currency="USD"):
@@ -42,9 +43,9 @@ def fetch_currency_names():
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def fetch_historical_rates(base_currency="USD", days=30):
-    """Fetch historical exchange rates using Fixer API."""
-    if not FIXER_API_KEY:
-        st.error("Fixer API key is not configured")
+    """Fetch historical exchange rates using Alpha Vantage API."""
+    if not ALPHA_VANTAGE_API_KEY:
+        st.error("Alpha Vantage API key is not configured")
         return None
 
     end_date = datetime.now()
@@ -52,55 +53,54 @@ def fetch_historical_rates(base_currency="USD", days=30):
     historical_data = {'rates': {}}
 
     try:
-        current_date = start_date
-        while current_date <= end_date:
-            date_str = current_date.strftime("%Y-%m-%d")
+        # Alpha Vantage has rate limits, so we'll fetch one currency at a time
+        currencies = fetch_currency_names()
+        progress_bar = st.progress(0)
+        status_text = st.empty()
 
-            # Use Fixer API for historical data
-            url = f"{FIXER_BASE_URL}/{date_str}"
+        for i, target_currency in enumerate(list(currencies.keys())[:5]):  # Limit to top 5 currencies due to API limits
+            if target_currency == base_currency:
+                continue
+
+            status_text.text(f"Fetching {target_currency} rates...")
+
+            # Fetch historical data for currency pair
             params = {
-                "access_key": FIXER_API_KEY,
-                "base": "EUR",  # Fixer free tier only supports EUR as base
-                "symbols": base_currency
+                "function": "FX_DAILY",
+                "from_symbol": base_currency,
+                "to_symbol": target_currency,
+                "apikey": ALPHA_VANTAGE_API_KEY,
+                "outputsize": "compact"  # Last 100 data points
             }
 
-            if base_currency != "EUR":
-                params["symbols"] += ",EUR"
+            response = requests.get(ALPHA_VANTAGE_URL, params=params)
 
-            try:
-                response = requests.get(url, params=params)
-                response.raise_for_status()
+            if response.status_code == 200:
                 data = response.json()
 
-                if data.get('success', False):
-                    rates = data.get('rates', {})
-                    if base_currency in rates:
-                        rate = rates[base_currency]
-                        if base_currency == "EUR":
-                            historical_data['rates'][date_str] = rates
-                        else:
-                            # Convert from EUR base to desired base currency
-                            converted_rates = {
-                                curr: rates[curr] / rate
-                                for curr in rates.keys()
-                                if curr != base_currency
-                            }
-                            converted_rates[base_currency] = 1.0
-                            historical_data['rates'][date_str] = converted_rates
-                    else:
-                        st.warning(f"Currency {base_currency} not available for {date_str}")
-                else:
-                    error_info = data.get('error', {})
-                    error_type = error_info.get('type', 'Unknown error')
-                    error_info = error_info.get('info', '')
-                    st.warning(f"Error for {date_str}: {error_type} - {error_info}")
-            except requests.exceptions.RequestException as e:
-                st.warning(f"Failed to fetch data for {date_str}: {str(e)}")
-                # Add a small delay to respect rate limits
-                import time
-                time.sleep(1)
+                if "Time Series FX (Daily)" in data:
+                    daily_rates = data["Time Series FX (Daily)"]
 
-            current_date += timedelta(days=1)
+                    for date_str, values in daily_rates.items():
+                        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+                        if start_date <= date_obj <= end_date:
+                            if date_str not in historical_data['rates']:
+                                historical_data['rates'][date_str] = {}
+
+                            rate = float(values['4. close'])
+                            historical_data['rates'][date_str][target_currency] = rate
+                            # Add base currency rate (always 1.0)
+                            historical_data['rates'][date_str][base_currency] = 1.0
+
+                # Respect API rate limits
+                time.sleep(12)  # Alpha Vantage free tier allows 5 requests per minute
+            else:
+                st.warning(f"Failed to fetch rates for {target_currency}: HTTP {response.status_code}")
+
+            progress_bar.progress((i + 1) / 5)
+
+        progress_bar.empty()
+        status_text.empty()
 
         if not historical_data['rates']:
             st.error("No historical data available")
@@ -109,5 +109,5 @@ def fetch_historical_rates(base_currency="USD", days=30):
         return historical_data
 
     except Exception as e:
-        st.error(f"Unexpected error: {str(e)}")
+        st.error(f"Error fetching historical data: {str(e)}")
         return None
