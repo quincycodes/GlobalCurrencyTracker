@@ -43,6 +43,10 @@ def fetch_currency_names():
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def fetch_historical_rates(base_currency="USD", days=30):
     """Fetch historical exchange rates using Fixer API."""
+    if not FIXER_API_KEY:
+        st.error("Fixer API key is not configured")
+        return None
+
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days)
     historical_data = {'rates': {}}
@@ -53,29 +57,40 @@ def fetch_historical_rates(base_currency="USD", days=30):
             date_str = current_date.strftime("%Y-%m-%d")
 
             # Use Fixer API for historical data
-            response = requests.get(
-                f"{FIXER_BASE_URL}/{date_str}",
-                params={
-                    "access_key": FIXER_API_KEY,
-                    "base": "EUR",  # Fixer free tier only supports EUR as base
-                    "symbols": "USD,EUR,GBP,JPY,AUD,CAD,CHF,CNY,INR,NZD"
-                }
-            )
+            url = f"{FIXER_BASE_URL}/{date_str}"
+            params = {
+                "access_key": FIXER_API_KEY,
+                "base": "EUR",  # Fixer free tier only supports EUR as base
+                "symbols": base_currency
+            }
+
+            if base_currency != "EUR":
+                params["symbols"] += ",EUR"
+
+            response = requests.get(url, params=params)
 
             if response.status_code == 200:
                 data = response.json()
-                if data.get('success', False) and 'rates' in data:
-                    # Convert rates from EUR to desired base currency
-                    eur_to_base = data['rates'][base_currency] if base_currency != 'EUR' else 1
-                    converted_rates = {
-                        curr: rate / eur_to_base
-                        for curr, rate in data['rates'].items()
-                    }
-                    historical_data['rates'][date_str] = converted_rates
+                if data.get('success', False):
+                    rates = data.get('rates', {})
+                    if base_currency in rates:
+                        rate = rates[base_currency]
+                        if base_currency == "EUR":
+                            historical_data['rates'][date_str] = rates
+                        else:
+                            # Convert from EUR base to desired base currency
+                            converted_rates = {
+                                curr: rates[curr] / rate
+                                for curr in rates.keys()
+                                if curr != base_currency
+                            }
+                            converted_rates[base_currency] = 1.0
+                            historical_data['rates'][date_str] = converted_rates
                 else:
-                    st.warning(f"Invalid data received for {date_str}")
+                    error_info = data.get('error', {})
+                    st.warning(f"Invalid data received for {date_str}: {error_info.get('type', 'Unknown error')}")
             else:
-                st.warning(f"Failed to fetch rates for {date_str}")
+                st.warning(f"Failed to fetch rates for {date_str}: HTTP {response.status_code}")
 
             current_date += timedelta(days=1)
 
