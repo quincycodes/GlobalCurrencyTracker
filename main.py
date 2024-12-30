@@ -105,10 +105,12 @@ st.title("💱 Real-Time Currency Dashboard")
 
 # Currency selection (moved from sidebar to main content)
 currencies = get_currency_list()
+default_base_index = list(currencies.keys()).index('EUR') if 'EUR' in currencies else 0
 base_currency = st.selectbox(
     "Base Currency",
     options=list(currencies.keys()),
-    format_func=lambda x: f"{x} - {currencies[x]}"
+    format_func=lambda x: f"{x} - {currencies[x]}",
+    index=default_base_index
 )
 
 # Main content tabs
@@ -121,10 +123,16 @@ with tab2:
     currency_converter()
 
 with tab3:
+    available_targets = [c for c in currencies.keys() if c != base_currency]
+    default_target_index = available_targets.index('USD') if 'USD' in available_targets else 0 if available_targets else 0
+    if base_currency == 'USD' and 'EUR' in available_targets:
+        default_target_index = available_targets.index('EUR')
+
     target_currency = st.selectbox(
         "Target Currency",
-        options=[c for c in currencies.keys() if c != base_currency],
-        format_func=lambda x: f"{x} - {currencies[x]}"
+        options=available_targets,
+        format_func=lambda x: f"{x} - {currencies[x]}",
+        index = default_target_index
     )
     display_historical_chart(base_currency, target_currency)
 
