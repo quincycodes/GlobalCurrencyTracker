@@ -26,14 +26,58 @@ dark_theme = """
         color: #FAFAFA;
     }
     .currency-card {
-        background-color: #262730 !important;
+        background-color: #1E1E1E !important;
         color: #FAFAFA !important;
+        border: 1px solid #2D2D2D !important;
     }
     .metric-value {
         color: #00B7FF !important;
     }
     .chart-container {
-        background-color: #262730 !important;
+        background-color: #1E1E1E !important;
+    }
+    /* Improve text visibility */
+    .stSelectbox div [data-baseweb="select"] {
+        background-color: #262730;
+        color: #FAFAFA;
+        border: 1px solid #2D2D2D;
+    }
+    .stDataFrame {
+        color: #FAFAFA;
+    }
+    div[data-testid="stMarkdownContainer"] {
+        color: #FAFAFA;
+    }
+    .stNumberInput div [data-baseweb="input"] {
+        background-color: #262730;
+        color: #FAFAFA;
+        border: 1px solid #2D2D2D;
+    }
+    .stTextInput div [data-baseweb="input"] {
+        background-color: #262730;
+        color: #FAFAFA;
+        border: 1px solid #2D2D2D;
+    }
+    /* Additional dark theme improvements */
+    .stTab {
+        background-color: #1E1E1E;
+        color: #FAFAFA;
+    }
+    .stTab[data-baseweb="tab"] {
+        color: #FAFAFA;
+    }
+    .stMarkdown {
+        color: #FAFAFA;
+    }
+    div[data-testid="stToolbar"] {
+        background-color: #0E1117;
+    }
+    .stSlider div[data-testid="stThumbValue"] {
+        color: #FAFAFA;
+    }
+    .stTable {
+        background-color: #1E1E1E;
+        color: #FAFAFA;
     }
 </style>
 """
