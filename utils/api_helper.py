@@ -13,10 +13,26 @@ def fetch_latest_rates(base_currency="USD"):
     try:
         response = requests.get(f"{BASE_URL}/latest/{base_currency}")
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        # Add currency names to the response
+        if 'rates' in data:
+            currency_names = fetch_currency_names()
+            data['currency_names'] = currency_names
+        return data
     except Exception as e:
         st.error(f"Error fetching rates: {str(e)}")
         return None
+
+@st.cache_data(ttl=86400)  # Cache for 24 hours
+def fetch_currency_names():
+    """Fetch all available currency names."""
+    try:
+        response = requests.get(f"{BASE_URL}/currencies")
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        st.error(f"Error fetching currency names: {str(e)}")
+        return {}
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def fetch_historical_rates(base_currency="USD", days=30):
@@ -46,7 +62,7 @@ def fetch_historical_rates(base_currency="USD", days=30):
                     # Convert rates from EUR to desired base currency
                     eur_to_base = data['rates'][base_currency] if base_currency != 'EUR' else 1
                     converted_rates = {
-                        curr: rate / eur_to_base 
+                        curr: rate / eur_to_base
                         for curr, rate in data['rates'].items()
                     }
                     historical_data['rates'][date_str] = converted_rates

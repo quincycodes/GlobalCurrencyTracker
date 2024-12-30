@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from utils.api_helper import fetch_currency_names
 
 def prepare_rate_data(rates_data):
     """Transform raw rates data into a pandas DataFrame."""
@@ -36,17 +37,15 @@ def prepare_historical_data(historical_data, target_currency):
 
     return df
 
+@st.cache_data(ttl=86400)  # Cache for 24 hours
 def get_currency_list():
-    """Return a list of common currencies with their names."""
-    return {
+    """Return a dictionary of all available currencies with their names."""
+    currency_names = fetch_currency_names()
+    return currency_names if currency_names else {
+        # Fallback to basic list if API fails
         'USD': 'US Dollar',
         'EUR': 'Euro',
         'GBP': 'British Pound',
         'JPY': 'Japanese Yen',
-        'AUD': 'Australian Dollar',
-        'CAD': 'Canadian Dollar',
-        'CHF': 'Swiss Franc',
-        'CNY': 'Chinese Yuan',
-        'INR': 'Indian Rupee',
-        'NZD': 'New Zealand Dollar'
+        'AUD': 'Australian Dollar'
     }
