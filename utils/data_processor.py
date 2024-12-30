@@ -39,13 +39,15 @@ def prepare_historical_data(historical_data, target_currency):
 
 @st.cache_data(ttl=86400)  # Cache for 24 hours
 def get_currency_list():
-    """Return a dictionary of all available currencies with their names."""
-    currency_names = fetch_currency_names()
-    return currency_names if currency_names else {
+    """Return a dictionary of all available currencies."""
+    currencies = fetch_currency_names()
+    if not currencies:
         # Fallback to basic list if API fails
-        'USD': 'US Dollar',
-        'EUR': 'Euro',
-        'GBP': 'British Pound',
-        'JPY': 'Japanese Yen',
-        'AUD': 'Australian Dollar'
-    }
+        currencies = {
+            'USD': 'US Dollar',
+            'EUR': 'Euro',
+            'GBP': 'British Pound',
+            'JPY': 'Japanese Yen',
+            'AUD': 'Australian Dollar'
+        }
+    return currencies

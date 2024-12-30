@@ -13,25 +13,31 @@ def fetch_latest_rates(base_currency="USD"):
     try:
         response = requests.get(f"{BASE_URL}/latest/{base_currency}")
         response.raise_for_status()
-        data = response.json()
-        # Add currency names to the response
-        if 'rates' in data:
-            currency_names = fetch_currency_names()
-            data['currency_names'] = currency_names
-        return data
+        return response.json()
     except Exception as e:
         st.error(f"Error fetching rates: {str(e)}")
         return None
 
 @st.cache_data(ttl=86400)  # Cache for 24 hours
 def fetch_currency_names():
-    """Fetch all available currency names."""
+    """Get available currencies from the latest rates."""
     try:
-        response = requests.get(f"{BASE_URL}/currencies")
+        # Get USD rates as base to get all available currencies
+        response = requests.get(f"{BASE_URL}/latest/USD")
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+
+        if 'rates' in data:
+            # Create a dictionary of currency codes
+            currencies = {
+                code: code for code in data['rates'].keys()
+            }
+            # Add base currency (USD) as it's not in the rates
+            currencies['USD'] = 'USD'
+            return currencies
+        return {}
     except Exception as e:
-        st.error(f"Error fetching currency names: {str(e)}")
+        st.error(f"Error fetching currencies: {str(e)}")
         return {}
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
