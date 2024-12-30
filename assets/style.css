@@ -1,0 +1,23 @@
+.currency-card {
+    border-radius: 5px;
+    padding: 1rem;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0066cc;
+}
+
+.currency-search {
+    margin: 1rem 0;
+}
+
+.chart-container {
+    margin: 2rem 0;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 5px;
+}
