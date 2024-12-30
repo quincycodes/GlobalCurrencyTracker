@@ -53,15 +53,21 @@ def fetch_historical_rates(base_currency="USD", days=30):
     historical_data = {'rates': {}}
 
     try:
+        # Add debug information
+        st.write("Debug: Fetching historical data")
+        st.write(f"Base Currency: {base_currency}")
+        st.write(f"Time Period: {days} days")
+
         # Alpha Vantage has rate limits, so we'll fetch one currency at a time
         currencies = fetch_currency_names()
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        for i, target_currency in enumerate(list(currencies.keys())[:5]):  # Limit to top 5 currencies due to API limits
-            if target_currency == base_currency:
-                continue
+        # Limit to 5 major currencies due to API limits
+        major_currencies = ['EUR', 'GBP', 'JPY', 'AUD', 'CAD']
+        target_currencies = [c for c in major_currencies if c != base_currency][:5]
 
+        for i, target_currency in enumerate(target_currencies):
             status_text.text(f"Fetching {target_currency} rates...")
 
             # Fetch historical data for currency pair
@@ -78,6 +84,11 @@ def fetch_historical_rates(base_currency="USD", days=30):
             if response.status_code == 200:
                 data = response.json()
 
+                # Debug API response
+                if 'Error Message' in data:
+                    st.write(f"API Error for {target_currency}:", data['Error Message'])
+                    continue
+
                 if "Time Series FX (Daily)" in data:
                     daily_rates = data["Time Series FX (Daily)"]
 
@@ -91,13 +102,16 @@ def fetch_historical_rates(base_currency="USD", days=30):
                             historical_data['rates'][date_str][target_currency] = rate
                             # Add base currency rate (always 1.0)
                             historical_data['rates'][date_str][base_currency] = 1.0
+                else:
+                    st.write(f"No daily rates found for {target_currency}")
+                    st.write("API Response:", data)
 
                 # Respect API rate limits
                 time.sleep(12)  # Alpha Vantage free tier allows 5 requests per minute
             else:
                 st.warning(f"Failed to fetch rates for {target_currency}: HTTP {response.status_code}")
 
-            progress_bar.progress((i + 1) / 5)
+            progress_bar.progress((i + 1) / len(target_currencies))
 
         progress_bar.empty()
         status_text.empty()
@@ -106,6 +120,9 @@ def fetch_historical_rates(base_currency="USD", days=30):
             st.error("No historical data available")
             return None
 
+        # Debug final data structure
+        st.write("Debug: Historical data fetched successfully")
+        st.write("Number of dates:", len(historical_data['rates']))
         return historical_data
 
     except Exception as e:

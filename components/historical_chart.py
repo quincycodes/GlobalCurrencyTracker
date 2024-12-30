@@ -21,11 +21,11 @@ def display_historical_chart(base_currency, target_currency):
         # Debug information
         if df.empty:
             st.warning("No historical data available for the selected currencies.")
+            # Add debugging information
+            st.write("Debug Info:")
+            st.write("Historical Data Structure:", historical_data.keys())
+            st.write("Target Currency:", target_currency)
             return
-
-        # Verify DataFrame structure
-        st.debug(f"DataFrame columns: {df.columns.tolist()}")
-        st.debug(f"DataFrame shape: {df.shape}")
 
         # Use theme-aware colors
         fig = px.line(
@@ -51,3 +51,4 @@ def display_historical_chart(base_currency, target_currency):
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("Unable to fetch historical data. Please try again later.")
+        st.write("Debug: No historical data returned from API")
