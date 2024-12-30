@@ -29,7 +29,7 @@ def fetch_historical_rates(base_currency="USD", days=30):
             date_str = current_date.strftime("%Y-%m-%d")
 
             # Fetch rates for specific date
-            response = requests.get(f"{BASE_URL}/latest/{base_currency}")
+            response = requests.get(f"{BASE_URL}/{date_str}/{base_currency}")
             if response.status_code == 200:
                 data = response.json()
                 if 'rates' in data:
@@ -42,6 +42,7 @@ def fetch_historical_rates(base_currency="USD", days=30):
             return None
 
         return historical_data
+
     except requests.exceptions.RequestException as e:
         st.error(f"Error fetching historical data: {str(e)}")
         return None
