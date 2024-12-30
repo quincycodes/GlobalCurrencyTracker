@@ -1,23 +1,44 @@
 .currency-card {
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 1rem;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: #1E1E1E;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    margin: 0.5rem 0;
 }
 
 .metric-value {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
-    color: #0066cc;
+    color: #00B7FF;
+    margin: 0.5rem 0;
 }
 
 .currency-search {
     margin: 1rem 0;
+    width: 100%;
 }
 
 .chart-container {
-    margin: 2rem 0;
+    margin: 1rem 0;
     padding: 1rem;
-    background-color: white;
-    border-radius: 5px;
+    background-color: #1E1E1E;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+/* Mobile-optimized styles */
+@media (max-width: 768px) {
+    .currency-card {
+        padding: 0.75rem;
+        margin: 0.25rem 0;
+    }
+
+    .metric-value {
+        font-size: 24px;
+    }
+
+    .chart-container {
+        margin: 0.5rem 0;
+        padding: 0.75rem;
+    }
 }

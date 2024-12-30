@@ -8,17 +8,11 @@ from utils.data_processor import get_currency_list
 st.set_page_config(
     page_title="Currency Dashboard",
     page_icon="💱",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Theme selection
-theme = st.sidebar.selectbox(
-    "Choose Theme",
-    ["Light", "Dark"],
-    key="theme_selector"
-)
-
-# Apply theme-specific styles
+# Apply dark theme styles
 dark_theme = """
 <style>
     .stApp {
@@ -36,11 +30,12 @@ dark_theme = """
     .chart-container {
         background-color: #1E1E1E !important;
     }
-    /* Improve text visibility */
+    /* Improve mobile visibility */
     .stSelectbox div [data-baseweb="select"] {
         background-color: #262730;
         color: #FAFAFA;
         border: 1px solid #2D2D2D;
+        min-height: 45px; /* Better touch targets */
     }
     .stDataFrame {
         color: #FAFAFA;
@@ -52,16 +47,19 @@ dark_theme = """
         background-color: #262730;
         color: #FAFAFA;
         border: 1px solid #2D2D2D;
+        min-height: 45px;
     }
     .stTextInput div [data-baseweb="input"] {
         background-color: #262730;
         color: #FAFAFA;
         border: 1px solid #2D2D2D;
+        min-height: 45px;
     }
-    /* Additional dark theme improvements */
+    /* Mobile-optimized tabs */
     .stTab {
         background-color: #1E1E1E;
         color: #FAFAFA;
+        min-height: 50px;
     }
     .stTab[data-baseweb="tab"] {
         color: #FAFAFA;
@@ -79,33 +77,24 @@ dark_theme = """
         background-color: #1E1E1E;
         color: #FAFAFA;
     }
-</style>
-"""
-
-light_theme = """
-<style>
-    .stApp {
-        background-color: #FFFFFF;
-        color: #262730;
+    /* Mobile-optimized containers */
+    div.element-container {
+        padding: 0.5rem 0;
     }
-    .currency-card {
-        background-color: white !important;
-        color: #262730 !important;
+    /* Better touch targets */
+    button {
+        min-height: 45px !important;
     }
-    .metric-value {
-        color: #0066cc !important;
-    }
-    .chart-container {
-        background-color: white !important;
+    /* Improved mobile spacing */
+    .main .block-container {
+        padding: 1rem !important;
+        max-width: 100% !important;
     }
 </style>
 """
 
-# Load theme-specific CSS
-if theme == "Dark":
-    st.markdown(dark_theme, unsafe_allow_html=True)
-else:
-    st.markdown(light_theme, unsafe_allow_html=True)
+# Load dark theme
+st.markdown(dark_theme, unsafe_allow_html=True)
 
 # Load custom CSS
 with open("assets/style.css") as f:
@@ -114,16 +103,16 @@ with open("assets/style.css") as f:
 # Main application
 st.title("💱 Real-Time Currency Dashboard")
 
-# Sidebar for base currency selection
+# Currency selection (moved from sidebar to main content)
 currencies = get_currency_list()
-base_currency = st.sidebar.selectbox(
-    "Select Base Currency",
+base_currency = st.selectbox(
+    "Base Currency",
     options=list(currencies.keys()),
     format_func=lambda x: f"{x} - {currencies[x]}"
 )
 
 # Main content tabs
-tab1, tab2, tab3 = st.tabs(["Live Rates", "Currency Converter", "Historical Charts"])
+tab1, tab2, tab3 = st.tabs(["Live Rates", "Convert", "History"])
 
 with tab1:
     display_live_rates(base_currency)
@@ -133,7 +122,7 @@ with tab2:
 
 with tab3:
     target_currency = st.selectbox(
-        "Select Target Currency",
+        "Target Currency",
         options=[c for c in currencies.keys() if c != base_currency],
         format_func=lambda x: f"{x} - {currencies[x]}"
     )
