@@ -11,6 +11,58 @@ st.set_page_config(
     layout="wide"
 )
 
+# Theme selection
+theme = st.sidebar.selectbox(
+    "Choose Theme",
+    ["Light", "Dark"],
+    key="theme_selector"
+)
+
+# Apply theme-specific styles
+dark_theme = """
+<style>
+    .stApp {
+        background-color: #0E1117;
+        color: #FAFAFA;
+    }
+    .currency-card {
+        background-color: #262730 !important;
+        color: #FAFAFA !important;
+    }
+    .metric-value {
+        color: #00B7FF !important;
+    }
+    .chart-container {
+        background-color: #262730 !important;
+    }
+</style>
+"""
+
+light_theme = """
+<style>
+    .stApp {
+        background-color: #FFFFFF;
+        color: #262730;
+    }
+    .currency-card {
+        background-color: white !important;
+        color: #262730 !important;
+    }
+    .metric-value {
+        color: #0066cc !important;
+    }
+    .chart-container {
+        background-color: white !important;
+    }
+</style>
+"""
+
+# Load theme-specific CSS
+if theme == "Dark":
+    st.markdown(dark_theme, unsafe_allow_html=True)
+else:
+    st.markdown(light_theme, unsafe_allow_html=True)
+
 # Load custom CSS
 with open("assets/style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
