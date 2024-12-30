@@ -47,11 +47,6 @@ def fetch_historical_rates(base_currency="EUR", days=30):
     historical_data = {'rates': {}}
 
     try:
-        # Add debug information
-        st.write("Debug: Fetching historical data")
-        st.write(f"Base Currency: {base_currency}")
-        st.write(f"Time Period: {days} days")
-
         current_date = start_date
         while current_date <= end_date:
             date_str = current_date.strftime("%Y-%m-%d")
@@ -64,20 +59,14 @@ def fetch_historical_rates(base_currency="EUR", days=30):
                 if 'rates' in data:
                     historical_data['rates'][date_str] = data['rates']
                     historical_data['rates'][date_str][base_currency] = 1.0
-            else:
-                st.warning(f"Failed to fetch rates for {date_str}: HTTP {response.status_code}")
 
             # Move to next date
             current_date += timedelta(days=1)
             time.sleep(0.5)  # Rate limiting
 
         if not historical_data['rates']:
-            st.error("No historical data available")
             return None
 
-        # Debug final data structure
-        st.write("Debug: Historical data fetched successfully")
-        st.write("Number of dates:", len(historical_data['rates']))
         return historical_data
 
     except Exception as e:
