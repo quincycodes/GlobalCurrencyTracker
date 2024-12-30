@@ -67,10 +67,11 @@ def fetch_historical_rates(base_currency="USD", days=30):
             if base_currency != "EUR":
                 params["symbols"] += ",EUR"
 
-            response = requests.get(url, params=params)
-
-            if response.status_code == 200:
+            try:
+                response = requests.get(url, params=params)
+                response.raise_for_status()
                 data = response.json()
+
                 if data.get('success', False):
                     rates = data.get('rates', {})
                     if base_currency in rates:
@@ -86,11 +87,18 @@ def fetch_historical_rates(base_currency="USD", days=30):
                             }
                             converted_rates[base_currency] = 1.0
                             historical_data['rates'][date_str] = converted_rates
+                    else:
+                        st.warning(f"Currency {base_currency} not available for {date_str}")
                 else:
                     error_info = data.get('error', {})
-                    st.warning(f"Invalid data received for {date_str}: {error_info.get('type', 'Unknown error')}")
-            else:
-                st.warning(f"Failed to fetch rates for {date_str}: HTTP {response.status_code}")
+                    error_type = error_info.get('type', 'Unknown error')
+                    error_info = error_info.get('info', '')
+                    st.warning(f"Error for {date_str}: {error_type} - {error_info}")
+            except requests.exceptions.RequestException as e:
+                st.warning(f"Failed to fetch data for {date_str}: {str(e)}")
+                # Add a small delay to respect rate limits
+                import time
+                time.sleep(1)
 
             current_date += timedelta(days=1)
 
@@ -100,9 +108,6 @@ def fetch_historical_rates(base_currency="USD", days=30):
 
         return historical_data
 
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching historical data: {str(e)}")
-        return None
     except Exception as e:
         st.error(f"Unexpected error: {str(e)}")
         return None
