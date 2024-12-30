@@ -14,26 +14,30 @@ def prepare_rate_data(rates_data):
 def prepare_historical_data(historical_data, target_currency):
     """Transform historical data into a format suitable for plotting."""
     if not historical_data or 'rates' not in historical_data:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['Date', 'Rate'])
 
     data = []
     for date, rates in historical_data['rates'].items():
         if target_currency in rates:
             data.append({
-                'Date': date,
-                'Rate': rates[target_currency]
+                'Date': pd.to_datetime(date),
+                'Rate': float(rates[target_currency])
             })
 
     if not data:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['Date', 'Rate'])
 
     df = pd.DataFrame(data)
-    df['Date'] = pd.to_datetime(df['Date'])
-    df = df.sort_values('Date')
 
-    # Drop duplicates and handle missing values
-    df = df.drop_duplicates('Date').reset_index(drop=True)
+    # Ensure proper column types
+    df['Date'] = pd.to_datetime(df['Date'])
+    df['Rate'] = pd.to_numeric(df['Rate'], errors='coerce')
+
+    # Drop any rows with NaN values
     df = df.dropna()
+
+    # Sort by date and reset index
+    df = df.sort_values('Date').reset_index(drop=True)
 
     return df
 

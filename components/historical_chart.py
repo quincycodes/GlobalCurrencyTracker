@@ -18,19 +18,26 @@ def display_historical_chart(base_currency, target_currency):
     if historical_data:
         df = prepare_historical_data(historical_data, target_currency)
 
-        # Use theme-aware colors
-        is_dark_theme = st.session_state.get('theme_selector') == 'Dark'
+        # Debug information
+        if df.empty:
+            st.warning("No historical data available for the selected currencies.")
+            return
 
+        # Verify DataFrame structure
+        st.debug(f"DataFrame columns: {df.columns.tolist()}")
+        st.debug(f"DataFrame shape: {df.shape}")
+
+        # Use theme-aware colors
         fig = px.line(
             df,
             x='Date',
             y='Rate',
             title=f'{base_currency}/{target_currency} Exchange Rate History',
-            template='plotly_dark' if is_dark_theme else 'plotly_white'
+            template='plotly_dark'
         )
 
         fig.update_traces(
-            line_color='#00B7FF' if is_dark_theme else '#0066cc'
+            line_color='#00B7FF'
         )
 
         fig.update_layout(
@@ -42,3 +49,5 @@ def display_historical_chart(base_currency, target_currency):
         )
 
         st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Unable to fetch historical data. Please try again later.")
